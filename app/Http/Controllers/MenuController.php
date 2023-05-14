@@ -93,6 +93,29 @@ class MenuController extends BaseController
      */
 
     public function getMenuItems() {
-        throw new \Exception('implement in coding task 3');
+        $items = MenuItem::all();
+        $grouped = $items->groupBy('parent_id');
+        $menu = $grouped[null]->map(function ($item) use ($grouped) {
+            return $this->buildMenuItem($item, $grouped);
+            
+        });
+
+        return $menu;
+    }
+
+    function buildMenuItem($item, $grouped)
+    {
+        $children = isset($grouped[$item->id]) ? $grouped[$item->id]->map(function ($child) use ($grouped) {
+            return $this->buildMenuItem($child, $grouped);
+        }) : [];
+        return [
+            'id' => $item->id,
+            'name' => $item->name,
+            'url' => $item->url,
+            'parent_id' => $item->parent_id,
+            'created_at' => $item->created_at,
+            'updated_at' => $item->updated_at,
+            'children' => $children,
+        ];
     }
 }
